@@ -4,4 +4,5 @@ export const enabledModules = [
   'multiFloor',
   'congestionTracking',
   'speedTest',
+  'pdfExport',
 ];
