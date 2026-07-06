@@ -12,7 +12,11 @@ export default {
     deleteBtn.onclick = async () => {
       if (!context.state.currentFloorId) return alert('Select a floor first');
       if (!confirm('Delete this floor and all its rooms/samples? This cannot be undone.')) return;
-      await fetch(`/api/floors/${context.state.currentFloorId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/floors/${context.state.currentFloorId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        return alert(body?.error || 'Could not delete floor');
+      }
       await context.refreshFloors();
     };
   },

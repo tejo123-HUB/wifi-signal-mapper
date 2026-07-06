@@ -85,7 +85,9 @@ export default {
         height: context.canvas.height,
       });
       const res = await fetch(`/api/floors/${context.state.currentFloorId}/congestion?${params}`);
-      const { range1: r1, range2: r2 } = await res.json();
+      const body = await res.json();
+      if (!res.ok) return alert(body.error || 'Comparison failed');
+      const { range1: r1, range2: r2 } = body;
 
       resultsEl.innerHTML = '';
       const p1 = makePanel(`Range 1: ${r1.sampleCount} samples, avg ${r1.averageRssi ?? 'n/a'}%`);
