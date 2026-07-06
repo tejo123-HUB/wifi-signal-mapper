@@ -8,7 +8,7 @@ function drawMini(canvas, rooms, grid, scale) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (const room of rooms) {
-    if (room.image && room.image.complete) {
+    if (room.image && room.image.complete && !room.imageFailed) {
       ctx.drawImage(
         room.image,
         room.x * scale,

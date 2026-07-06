@@ -9,12 +9,16 @@ export default {
           if (!room.image) {
             room.image = new Image();
             room.image.onload = () => context.redraw();
-            room.image.onerror = () =>
+            room.image.onerror = () => {
+              room.imageFailed = true;
               console.error(`Failed to load room photo: ${room.image_path}`);
+            };
             room.image.src = room.image_path;
             continue;
           }
-          if (room.image.complete) {
+          // .complete is true for a failed load too, not just a successful
+          // one — skip drawing rooms whose image errored out.
+          if (room.image.complete && !room.imageFailed) {
             ctx.drawImage(room.image, room.x, room.y, room.width, room.height);
           }
         }

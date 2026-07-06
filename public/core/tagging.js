@@ -17,11 +17,15 @@ export default {
     takeReadingBtn.onclick = async () => {
       if (!state.currentFloorId) return alert('Create or select a floor first');
       if (!state.lastClick) return alert('Click a point on the floor plan first');
-      const sample = await api.takeSample(state.currentFloorId, state.lastClick.x, state.lastClick.y);
-      state.samples.push(sample);
-      const speedNote = sample.download_mbps != null ? `, ${sample.download_mbps} Mbps` : '';
-      statusEl.textContent = `Recorded: ${sample.rssi}${speedNote} at (${Math.round(sample.x)}, ${Math.round(sample.y)})`;
-      if (context.loadHeatmap) context.loadHeatmap();
+      try {
+        const sample = await api.takeSample(state.currentFloorId, state.lastClick.x, state.lastClick.y);
+        state.samples.push(sample);
+        const speedNote = sample.download_mbps != null ? `, ${sample.download_mbps} Mbps` : '';
+        statusEl.textContent = `Recorded: ${sample.rssi}${speedNote} at (${Math.round(sample.x)}, ${Math.round(sample.y)})`;
+        if (context.loadHeatmap) context.loadHeatmap();
+      } catch (e) {
+        statusEl.textContent = `Reading failed: ${e.message}`;
+      }
     };
   },
 };

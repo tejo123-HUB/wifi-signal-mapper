@@ -14,11 +14,15 @@ require('./core/floorplanBuilder').register(app, db);
 require('./core/wifiScanner').register(app, db);
 require('./core/interpolation').register(app, db);
 
-for (const name of enabledModules) {
-  const mod = require(`./modules/${name}`);
-  mod.migrate?.(db);
-  mod.register(app, db);
+async function start() {
+  for (const name of enabledModules) {
+    const mod = require(`./modules/${name}`);
+    await mod.migrate?.(db);
+    mod.register(app, db);
+  }
+
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 }
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+start();

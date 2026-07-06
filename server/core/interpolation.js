@@ -1,4 +1,5 @@
 const { sendError } = require('./apiError');
+const { queryNumber } = require('./query');
 
 // Inverse distance weighting, computed on a coarse grid for performance.
 // power is the F14 smoothing control: higher values fall off more sharply
@@ -35,7 +36,7 @@ function interpolateGrid(samples, { power = 2, gridSize = 20, width = 1000, heig
 
 function register(app, db) {
   app.get('/api/floors/:id/heatmap', (req, res) => {
-    const power = parseFloat(req.query.power) || 2;
+    const power = queryNumber(req, 'power', 2);
     const width = parseInt(req.query.width, 10) || 1000;
     const height = parseInt(req.query.height, 10) || 700;
     db.all('SELECT x, y, rssi FROM samples WHERE floor_id = ?', [req.params.id], (err, rows) => {

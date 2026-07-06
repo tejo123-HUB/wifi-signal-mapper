@@ -1,6 +1,7 @@
 const { interpolateGrid } = require('../../core/interpolation');
 const { sendError } = require('../../core/apiError');
 const { addColumnIfMissing } = require('../../core/schema');
+const { queryNumber } = require('../../core/query');
 
 async function migrate(db) {
   await addColumnIfMissing(db, 'samples', 'ssid', 'TEXT');
@@ -21,7 +22,7 @@ function register(app, db) {
 
   app.get('/api/floors/:id/heatmap-by-ssid', (req, res) => {
     const { ssid } = req.query;
-    const power = parseFloat(req.query.power) || 2;
+    const power = queryNumber(req, 'power', 2);
     const width = parseInt(req.query.width, 10) || 1000;
     const height = parseInt(req.query.height, 10) || 700;
     let query = 'SELECT x, y, rssi FROM samples WHERE floor_id = ?';

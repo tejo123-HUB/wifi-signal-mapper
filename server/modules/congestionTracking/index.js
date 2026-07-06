@@ -1,5 +1,6 @@
 const { interpolateGrid } = require('../../core/interpolation');
 const { sendError } = require('../../core/apiError');
+const { queryNumber } = require('../../core/query');
 
 function averageRssi(rows) {
   if (rows.length === 0) return null;
@@ -27,7 +28,10 @@ function register(app, db) {
         .status(400)
         .json({ error: 'range1Start, range1End, range2Start, and range2End are required' });
     }
-    const power = parseFloat(req.query.power) || 2;
+    if (Number(range1Start) > Number(range1End) || Number(range2Start) > Number(range2End)) {
+      return res.status(400).json({ error: 'each range\'s start must not be after its end' });
+    }
+    const power = queryNumber(req, 'power', 2);
     const width = parseInt(req.query.width, 10) || 1000;
     const height = parseInt(req.query.height, 10) || 700;
     const floorId = req.params.id;

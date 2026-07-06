@@ -8,9 +8,13 @@ function columnExists(db, table, column) {
 }
 
 async function addColumnIfMissing(db, table, column, definition) {
-  if (!(await columnExists(db, table, column))) {
-    db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
-  }
+  if (await columnExists(db, table, column)) return;
+  await new Promise((resolve, reject) => {
+    db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`, (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
 }
 
 module.exports = { columnExists, addColumnIfMissing };

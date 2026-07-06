@@ -1,4 +1,5 @@
 const { sendError } = require('../../core/apiError');
+const { queryNumber } = require('../../core/query');
 
 // Groups weak samples that are physically close together (within
 // clusterRadius canvas units) into named zones, rather than reporting
@@ -37,7 +38,7 @@ function clusterWeakSpots(weakSamples, clusterRadius = 100) {
 
 function register(app, db) {
   app.get('/api/floors/:id/report', (req, res) => {
-    const threshold = parseFloat(req.query.threshold) || 40;
+    const threshold = queryNumber(req, 'threshold', 40);
     db.all('SELECT * FROM samples WHERE floor_id = ?', [req.params.id], (err, rows) => {
       if (err) return sendError(res, err);
       const weakSpots = rows.filter((s) => s.rssi < threshold);

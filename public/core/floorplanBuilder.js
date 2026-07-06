@@ -8,13 +8,20 @@ export default {
     const roomPhotoInput = document.getElementById('room-photo-input');
     const addRoomBtn = document.getElementById('add-room-btn');
 
+    let selectToken = 0;
     async function selectFloor(floorId) {
       state.currentFloorId = Number(floorId);
       state.lastClick = null;
-      [state.rooms, state.samples] = await Promise.all([
+      const token = ++selectToken;
+      const [rooms, samples] = await Promise.all([
         api.getRooms(state.currentFloorId),
         api.getSamples(state.currentFloorId),
       ]);
+      // Ignore this response if a newer floor selection has already started
+      // while we were waiting (e.g. the user switched floors twice quickly).
+      if (token !== selectToken) return;
+      state.rooms = rooms;
+      state.samples = samples;
       context.redraw();
       if (context.loadHeatmap) context.loadHeatmap();
     }
@@ -44,9 +51,13 @@ export default {
     createFloorBtn.onclick = async () => {
       const name = floorNameInput.value.trim();
       if (!name) return alert('Enter a floor name');
-      const floor = await api.createFloor(name);
-      floorNameInput.value = '';
-      await refreshFloors(floor.id);
+      try {
+        const floor = await api.createFloor(name);
+        floorNameInput.value = '';
+        await refreshFloors(floor.id);
+      } catch (e) {
+        alert(`Could not create floor: ${e.message}`);
+      }
     };
 
     floorSelect.onchange = () => selectFloor(floorSelect.value);
@@ -55,10 +66,14 @@ export default {
       const file = roomPhotoInput.files[0];
       if (!state.currentFloorId) return alert('Create or select a floor first');
       if (!file) return alert('Choose a room photo first');
-      const room = await api.uploadRoom(state.currentFloorId, file);
-      state.rooms.push(room);
-      roomPhotoInput.value = '';
-      context.redraw();
+      try {
+        const room = await api.uploadRoom(state.currentFloorId, file);
+        state.rooms.push(room);
+        roomPhotoInput.value = '';
+        context.redraw();
+      } catch (e) {
+        alert(`Could not upload room photo: ${e.message}`);
+      }
     };
 
     let dragging = null;
@@ -91,16 +106,20 @@ export default {
       // point; tell tagging.js to ignore that one click so it doesn't record
       // the drop location as a WiFi-reading tag point.
       context.suppressNextClick = true;
-      await api.updateRoom(room.id, {
-        x: room.x,
-        y: room.y,
-        width: room.width,
-        height: room.height,
-      });
+      try {
+        await api.updateRoom(room.id, {
+          x: room.x,
+          y: room.y,
+          width: room.width,
+          height: room.height,
+        });
+      } catch (e) {
+        console.error('Failed to save room position:', e.message);
+      }
     });
 
     context.refreshFloors = refreshFloors;
 
-    refreshFloors();
+    refreshFloors().catch((e) => console.error('Failed to load floors:', e.message));
   },
 };

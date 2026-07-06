@@ -6,11 +6,19 @@ function register(app, db) {
   // addition is floor deletion.
   app.delete('/api/floors/:id', (req, res) => {
     const floorId = req.params.id;
+    let failed = false;
+    const failIfError = (err) => {
+      if (err && !failed) {
+        failed = true;
+        sendError(res, err);
+      }
+    };
     db.serialize(() => {
-      db.run('DELETE FROM samples WHERE floor_id = ?', [floorId]);
-      db.run('DELETE FROM rooms WHERE floor_id = ?', [floorId]);
+      db.run('DELETE FROM samples WHERE floor_id = ?', [floorId], (err) => failIfError(err));
+      db.run('DELETE FROM rooms WHERE floor_id = ?', [floorId], (err) => failIfError(err));
       db.run('DELETE FROM floors WHERE id = ?', [floorId], function (err) {
-        if (err) return sendError(res, err);
+        if (failed) return;
+        if (err) return failIfError(err);
         if (this.changes === 0) return res.status(404).json({ error: 'floor not found' });
         res.json({ deleted: Number(floorId) });
       });
