@@ -28,7 +28,14 @@ export default {
         opt.textContent = floor.name;
         floorSelect.appendChild(opt);
       }
-      if (floors.length === 0) return;
+      if (floors.length === 0) {
+        state.currentFloorId = null;
+        state.rooms = [];
+        state.samples = [];
+        state.lastClick = null;
+        context.redraw();
+        return;
+      }
       const targetId = selectId ?? floors[floors.length - 1].id;
       floorSelect.value = targetId;
       await selectFloor(floorSelect.value);
@@ -91,6 +98,8 @@ export default {
         height: room.height,
       });
     });
+
+    context.refreshFloors = refreshFloors;
 
     refreshFloors();
   },
