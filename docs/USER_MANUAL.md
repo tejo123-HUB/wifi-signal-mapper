@@ -32,7 +32,7 @@ Aim for at least 20–30 tagged points per floor for a heatmap that looks meanin
 
 ## 3. Optional features
 
-These only appear if enabled in `features.config.js` (see `docs/AGENTS.md`/`CLAUDE.md` for the module system). All are enabled by default on `main`.
+These only appear if enabled in `features.config.js` (see `../CLAUDE.md` for the module system). All are enabled by default on `main`.
 
 ### Multi-AP / SSID comparison
 A **"Filter by AP (SSID)"** dropdown appears above the canvas, populated from every access point your samples have connected to. Selecting one replaces the heatmap with a version built only from readings taken on that AP — useful for seeing where one access point's coverage ends and another's begins. Choose "All access points" to go back to the combined view.
@@ -65,4 +65,4 @@ A natural report structure, matching what the software actually produces:
 3. **Analysis** — AP coverage comparison (multi-AP) and congestion vs. distance findings (congestion tracking).
 4. **Recommendations** — the dead-zone report's output.
 
-Don't claim capabilities the software doesn't have — there is no people-counting or motion-detection feature in this project (see `docs/CLAUDE.md`, "Out of scope").
+Don't claim capabilities the software doesn't have — there is no people-counting or motion-detection feature in this project (see `../CLAUDE.md`, "Out of scope").
