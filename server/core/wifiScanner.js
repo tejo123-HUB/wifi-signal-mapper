@@ -48,6 +48,20 @@ function scanViaNetsh() {
   });
 }
 
+// Optional modules (e.g. multiAP) may ALTER TABLE samples to add columns
+// like ssid/bssid via their own migrate(). Rather than hardcode knowledge
+// of any specific module here, insert whatever scanned fields actually
+// have a matching column — this keeps core correct whether or not those
+// modules are enabled, with no core edit needed to add/remove them.
+function getSampleColumns(db) {
+  return new Promise((resolve, reject) => {
+    db.all('PRAGMA table_info(samples)', [], (err, cols) => {
+      if (err) return reject(err);
+      resolve(cols.map((c) => c.name));
+    });
+  });
+}
+
 function register(app, db) {
   app.get('/api/scan', async (req, res) => {
     try {
@@ -65,12 +79,26 @@ function register(app, db) {
     }
     try {
       const reading = await scanCurrentSignal();
+      const columns = await getSampleColumns(db);
+      const record = {
+        floor_id,
+        x,
+        y,
+        rssi: reading.rssi,
+        timestamp: reading.timestamp,
+        ssid: reading.ssid,
+        bssid: reading.bssid,
+      };
+      const fields = Object.keys(record).filter(
+        (k) => columns.includes(k) && record[k] !== undefined
+      );
       db.run(
-        `INSERT INTO samples (floor_id, x, y, rssi, timestamp) VALUES (?, ?, ?, ?, ?)`,
-        [floor_id, x, y, reading.rssi, reading.timestamp],
+        `INSERT INTO samples (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')})`,
+        fields.map((f) => record[f]),
         function (err) {
           if (err) return sendError(res, err);
-          res.json({ id: this.lastID, floor_id, x, y, ...reading });
+          const stored = Object.fromEntries(fields.map((f) => [f, record[f]]));
+          res.json({ id: this.lastID, ...stored });
         }
       );
     } catch (e) {
