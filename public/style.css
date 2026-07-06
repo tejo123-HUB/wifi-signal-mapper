@@ -39,3 +39,21 @@ canvas {
 button {
   cursor: pointer;
 }
+
+table {
+  border-collapse: collapse;
+  margin: 0.5rem 0 1rem;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+}
+
+th {
+  background: #f2f2f2;
+}
