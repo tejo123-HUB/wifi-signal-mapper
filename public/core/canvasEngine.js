@@ -9,6 +9,8 @@ export default {
           if (!room.image) {
             room.image = new Image();
             room.image.onload = () => context.redraw();
+            room.image.onerror = () =>
+              console.error(`Failed to load room photo: ${room.image_path}`);
             room.image.src = room.image_path;
             continue;
           }

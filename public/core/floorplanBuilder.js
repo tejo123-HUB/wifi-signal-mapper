@@ -11,8 +11,10 @@ export default {
     async function selectFloor(floorId) {
       state.currentFloorId = Number(floorId);
       state.lastClick = null;
-      state.rooms = await api.getRooms(state.currentFloorId);
-      state.samples = await api.getSamples(state.currentFloorId);
+      [state.rooms, state.samples] = await Promise.all([
+        api.getRooms(state.currentFloorId),
+        api.getSamples(state.currentFloorId),
+      ]);
       context.redraw();
       if (context.loadHeatmap) context.loadHeatmap();
     }
@@ -58,7 +60,7 @@ export default {
       for (let i = state.rooms.length - 1; i >= 0; i--) {
         const r = state.rooms[i];
         if (pos.x >= r.x && pos.x <= r.x + r.width && pos.y >= r.y && pos.y <= r.y + r.height) {
-          dragging = { room: r, offsetX: pos.x - r.x, offsetY: pos.y - r.y };
+          dragging = { room: r, offsetX: pos.x - r.x, offsetY: pos.y - r.y, moved: false };
           break;
         }
       }
@@ -66,6 +68,7 @@ export default {
 
     context.canvas.addEventListener('mousemove', (e) => {
       if (!dragging) return;
+      dragging.moved = true;
       const pos = context.getCanvasPos(e);
       dragging.room.x = pos.x - dragging.offsetX;
       dragging.room.y = pos.y - dragging.offsetY;
@@ -74,8 +77,13 @@ export default {
 
     window.addEventListener('mouseup', async () => {
       if (!dragging) return;
-      const { room } = dragging;
+      const { room, moved } = dragging;
       dragging = null;
+      if (!moved) return;
+      // Ending a drag on the canvas also fires a native 'click' at the drop
+      // point; tell tagging.js to ignore that one click so it doesn't record
+      // the drop location as a WiFi-reading tag point.
+      context.suppressNextClick = true;
       await api.updateRoom(room.id, {
         x: room.x,
         y: room.y,

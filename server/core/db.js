@@ -8,6 +8,8 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 const db = new sqlite3.Database(path.join(dataDir, 'wifi.db'));
 
 db.serialize(() => {
+  db.run('PRAGMA foreign_keys = ON');
+
   db.run(`
     CREATE TABLE IF NOT EXISTS floors (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,3 +1,5 @@
+const { sendError } = require('./apiError');
+
 // Inverse distance weighting, computed on a coarse grid for performance.
 // power is the F14 smoothing control: higher values fall off more sharply
 // around each sample; lower values blend more smoothly across the floor.
@@ -37,7 +39,7 @@ function register(app, db) {
     const width = parseInt(req.query.width, 10) || 1000;
     const height = parseInt(req.query.height, 10) || 700;
     db.all('SELECT x, y, rssi FROM samples WHERE floor_id = ?', [req.params.id], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return sendError(res, err);
       res.json(interpolateGrid(rows, { power, width, height }));
     });
   });

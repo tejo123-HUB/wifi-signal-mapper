@@ -6,6 +6,10 @@ export default {
     const takeReadingBtn = document.getElementById('take-reading-btn');
 
     context.canvas.addEventListener('click', (e) => {
+      if (context.suppressNextClick) {
+        context.suppressNextClick = false;
+        return;
+      }
       state.lastClick = context.getCanvasPos(e);
       statusEl.textContent = `Point selected: (${Math.round(state.lastClick.x)}, ${Math.round(state.lastClick.y)})`;
     });

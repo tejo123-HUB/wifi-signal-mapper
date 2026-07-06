@@ -23,16 +23,27 @@ export default {
       },
     };
 
+    let requestToken = 0;
     context.loadHeatmap = async () => {
       if (!context.state.currentFloorId) return;
+      const floorId = context.state.currentFloorId;
       const power = smoothingSlider.value;
-      grid = await context.api.getHeatmap(
-        context.state.currentFloorId,
-        power,
-        context.canvas.width,
-        context.canvas.height
-      );
-      context.redraw();
+      const token = ++requestToken;
+      try {
+        const result = await context.api.getHeatmap(
+          floorId,
+          power,
+          context.canvas.width,
+          context.canvas.height
+        );
+        // Ignore this response if a newer request (floor switch, slider
+        // move) has already been kicked off while we were waiting.
+        if (token !== requestToken) return;
+        grid = result;
+        context.redraw();
+      } catch (e) {
+        console.error('Failed to load heatmap:', e);
+      }
     };
 
     smoothingSlider.oninput = () => context.loadHeatmap();

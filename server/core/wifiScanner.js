@@ -1,5 +1,6 @@
 const wifi = require('node-wifi');
 const { exec } = require('child_process');
+const { sendError } = require('./apiError');
 
 wifi.init({ iface: null });
 
@@ -52,7 +53,7 @@ function register(app, db) {
     try {
       res.json(await scanCurrentSignal());
     } catch (e) {
-      res.status(500).json({ error: e.message });
+      sendError(res, e);
     }
   });
 
@@ -68,12 +69,12 @@ function register(app, db) {
         `INSERT INTO samples (floor_id, x, y, rssi, timestamp) VALUES (?, ?, ?, ?, ?)`,
         [floor_id, x, y, reading.rssi, reading.timestamp],
         function (err) {
-          if (err) return res.status(500).json({ error: err.message });
+          if (err) return sendError(res, err);
           res.json({ id: this.lastID, floor_id, x, y, ...reading });
         }
       );
     } catch (e) {
-      res.status(500).json({ error: e.message });
+      sendError(res, e);
     }
   });
 
@@ -82,7 +83,7 @@ function register(app, db) {
       'SELECT * FROM samples WHERE floor_id = ? ORDER BY timestamp',
       [req.params.id],
       (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) return sendError(res, err);
         res.json(rows);
       }
     );

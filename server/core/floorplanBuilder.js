@@ -1,7 +1,15 @@
 const multer = require('multer');
 const path = require('path');
+const crypto = require('crypto');
+const { sendError } = require('./apiError');
 
-const upload = multer({ dest: path.join(__dirname, '../../uploads') });
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '../../uploads'),
+  filename(req, file, cb) {
+    cb(null, crypto.randomUUID() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
 
 function register(app, db) {
   // F12 groundwork: floors are created here, multiFloor module adds the switcher UI
@@ -9,14 +17,14 @@ function register(app, db) {
     const { name } = req.body;
     if (!name) return res.status(400).json({ error: 'name is required' });
     db.run('INSERT INTO floors (name) VALUES (?)', [name], function (err) {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return sendError(res, err);
       res.json({ id: this.lastID, name });
     });
   });
 
   app.get('/api/floors', (req, res) => {
     db.all('SELECT * FROM floors', [], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return sendError(res, err);
       res.json(rows);
     });
   });
@@ -31,7 +39,7 @@ function register(app, db) {
       `INSERT INTO rooms (floor_id, image_path, x, y, width, height, label) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [floorId, imagePath, x, y, width, height, label],
       function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) return sendError(res, err);
         res.json({
           id: this.lastID,
           floor_id: floorId,
@@ -48,7 +56,7 @@ function register(app, db) {
 
   app.get('/api/floors/:id/rooms', (req, res) => {
     db.all('SELECT * FROM rooms WHERE floor_id = ?', [req.params.id], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return sendError(res, err);
       res.json(rows);
     });
   });
@@ -63,7 +71,7 @@ function register(app, db) {
       `UPDATE rooms SET x = ?, y = ?, width = ?, height = ? WHERE id = ?`,
       [x, y, width, height, req.params.id],
       function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) return sendError(res, err);
         if (this.changes === 0) return res.status(404).json({ error: 'room not found' });
         res.json({ id: Number(req.params.id), x, y, width, height });
       }

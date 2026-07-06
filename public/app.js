@@ -4,18 +4,22 @@ import tagging from './core/tagging.js';
 import heatmap from './core/heatmap.js';
 import { enabledModules } from './features.config.js';
 
+async function postJSON(url, body, method = 'POST') {
+  return (
+    await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  ).json();
+}
+
 const api = {
   async getFloors() {
     return (await fetch('/api/floors')).json();
   },
   async createFloor(name) {
-    return (
-      await fetch('/api/floors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      })
-    ).json();
+    return postJSON('/api/floors', { name });
   },
   async getRooms(floorId) {
     return (await fetch(`/api/floors/${floorId}/rooms`)).json();
@@ -28,25 +32,13 @@ const api = {
     ).json();
   },
   async updateRoom(roomId, { x, y, width, height }) {
-    return (
-      await fetch(`/api/rooms/${roomId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x, y, width, height }),
-      })
-    ).json();
+    return postJSON(`/api/rooms/${roomId}`, { x, y, width, height }, 'PUT');
   },
   async getSamples(floorId) {
     return (await fetch(`/api/floors/${floorId}/samples`)).json();
   },
   async takeSample(floorId, x, y) {
-    return (
-      await fetch('/api/samples', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ floor_id: floorId, x, y }),
-      })
-    ).json();
+    return postJSON('/api/samples', { floor_id: floorId, x, y });
   },
   async getHeatmap(floorId, power, width, height) {
     return (
@@ -77,6 +69,8 @@ const context = {
   },
 };
 
+// Order matters: canvasEngine must init first since it defines context.redraw,
+// which floorplanBuilder/tagging/heatmap all call.
 const coreModules = [canvasEngine, floorplanBuilder, tagging, heatmap];
 
 async function boot() {
