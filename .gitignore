@@ -3,3 +3,12 @@ data/*.db
 uploads/*
 !uploads/.gitkeep
 .env
+
+# Internal planning/architecture docs — not meant for the public repo.
+# docs/README.md and docs/USER_MANUAL.md stay tracked.
+docs/AGENTS.md
+docs/BUILD_STEPS.md
+docs/PROJECT_STRUCTURE.md
+docs/wifi_signal_mapper_build_guide.md
+docs/wifi_signal_mapper_module_plan.md
+docs/wifi_signal_mapper_project_definition.md
