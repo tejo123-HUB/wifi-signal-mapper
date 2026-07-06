@@ -20,7 +20,7 @@ Requirements:
 
 1. **Create a floor.** Type a name in the "New floor name" box and click **Create floor**. It appears in the dropdown next to it and is selected automatically.
 2. **Add room photos.** Choose an image file and click **Add room photo**. It appears as a tile on the canvas.
-3. **Arrange the composite floor plan.** Drag each room photo on the canvas into the position/shape that matches the real building layout. Positions are saved automatically as you drop each one — reloading the page keeps your arrangement.
+3. **Arrange the composite floor plan.** Drag a room photo to reposition it, or drag the small square at its bottom-right corner to resize it, until the layout matches the real building. Changes are saved automatically when you release the mouse — reloading the page keeps your arrangement.
 4. **Tag a point and take a reading.**
    - Click a point on the canvas where you're physically standing.
    - Click **Take reading at last clicked point**. This reads the laptop's current WiFi signal and stores it at that point.

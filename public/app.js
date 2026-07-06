@@ -34,9 +34,12 @@ const api = {
   async getRooms(floorId) {
     return parseJSON(await fetch(`/api/floors/${floorId}/rooms`));
   },
-  async uploadRoom(floorId, file) {
+  async uploadRoom(floorId, file, position = {}) {
     const formData = new FormData();
     formData.append('photo', file);
+    for (const [key, value] of Object.entries(position)) {
+      formData.append(key, value);
+    }
     return parseJSON(
       await fetch(`/api/floors/${floorId}/rooms`, { method: 'POST', body: formData })
     );

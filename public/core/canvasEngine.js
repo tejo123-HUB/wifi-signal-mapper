@@ -1,3 +1,8 @@
+// Size of the draggable resize handle drawn at each room's bottom-right
+// corner; floorplanBuilder.js uses the same constant for hit-testing so the
+// clickable area always matches what's drawn.
+export const RESIZE_HANDLE_SIZE = 12;
+
 export default {
   id: 'canvasEngine',
   init(context) {
@@ -20,6 +25,15 @@ export default {
           // one — skip drawing rooms whose image errored out.
           if (room.image.complete && !room.imageFailed) {
             ctx.drawImage(room.image, room.x, room.y, room.width, room.height);
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.strokeRect(room.x, room.y, room.width, room.height);
+            ctx.fillStyle = 'rgba(30, 100, 220, 0.85)';
+            ctx.fillRect(
+              room.x + room.width - RESIZE_HANDLE_SIZE,
+              room.y + room.height - RESIZE_HANDLE_SIZE,
+              RESIZE_HANDLE_SIZE,
+              RESIZE_HANDLE_SIZE
+            );
           }
         }
       },

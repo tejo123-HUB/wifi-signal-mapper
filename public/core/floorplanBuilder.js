@@ -1,3 +1,7 @@
+import { RESIZE_HANDLE_SIZE } from './canvasEngine.js';
+
+const MIN_ROOM_SIZE = 40;
+
 export default {
   id: 'floorplanBuilder',
   init(context) {
@@ -67,7 +71,11 @@ export default {
       if (!state.currentFloorId) return alert('Create or select a floor first');
       if (!file) return alert('Choose a room photo first');
       try {
-        const room = await api.uploadRoom(state.currentFloorId, file);
+        // Stagger each new room's starting position in a grid so uploads
+        // don't all land stacked exactly on top of each other at (0,0).
+        const index = state.rooms.length;
+        const position = { x: (index % 4) * 220, y: Math.floor(index / 4) * 170 };
+        const room = await api.uploadRoom(state.currentFloorId, file, position);
         state.rooms.push(room);
         roomPhotoInput.value = '';
         context.redraw();
@@ -76,31 +84,52 @@ export default {
       }
     };
 
-    let dragging = null;
+    function isOnResizeHandle(pos, room) {
+      const hx = room.x + room.width - RESIZE_HANDLE_SIZE;
+      const hy = room.y + room.height - RESIZE_HANDLE_SIZE;
+      return (
+        pos.x >= hx &&
+        pos.x <= hx + RESIZE_HANDLE_SIZE &&
+        pos.y >= hy &&
+        pos.y <= hy + RESIZE_HANDLE_SIZE
+      );
+    }
+
+    let interaction = null;
     context.canvas.addEventListener('mousedown', (e) => {
       const pos = context.getCanvasPos(e);
       for (let i = state.rooms.length - 1; i >= 0; i--) {
         const r = state.rooms[i];
+        if (isOnResizeHandle(pos, r)) {
+          interaction = { mode: 'resize', room: r, moved: false };
+          break;
+        }
         if (pos.x >= r.x && pos.x <= r.x + r.width && pos.y >= r.y && pos.y <= r.y + r.height) {
-          dragging = { room: r, offsetX: pos.x - r.x, offsetY: pos.y - r.y, moved: false };
+          interaction = { mode: 'move', room: r, offsetX: pos.x - r.x, offsetY: pos.y - r.y, moved: false };
           break;
         }
       }
     });
 
     context.canvas.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
-      dragging.moved = true;
+      if (!interaction) return;
+      interaction.moved = true;
       const pos = context.getCanvasPos(e);
-      dragging.room.x = pos.x - dragging.offsetX;
-      dragging.room.y = pos.y - dragging.offsetY;
+      const { room } = interaction;
+      if (interaction.mode === 'resize') {
+        room.width = Math.max(MIN_ROOM_SIZE, pos.x - room.x);
+        room.height = Math.max(MIN_ROOM_SIZE, pos.y - room.y);
+      } else {
+        room.x = pos.x - interaction.offsetX;
+        room.y = pos.y - interaction.offsetY;
+      }
       context.redraw();
     });
 
     window.addEventListener('mouseup', async () => {
-      if (!dragging) return;
-      const { room, moved } = dragging;
-      dragging = null;
+      if (!interaction) return;
+      const { room, moved } = interaction;
+      interaction = null;
       if (!moved) return;
       // Ending a drag on the canvas also fires a native 'click' at the drop
       // point; tell tagging.js to ignore that one click so it doesn't record
@@ -114,7 +143,7 @@ export default {
           height: room.height,
         });
       } catch (e) {
-        console.error('Failed to save room position:', e.message);
+        console.error('Failed to save room arrangement:', e.message);
       }
     });
 
