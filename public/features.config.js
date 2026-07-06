@@ -1,1 +1,1 @@
-export const enabledModules = [];
+export const enabledModules = ['multiAP'];
