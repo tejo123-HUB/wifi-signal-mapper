@@ -1,1 +1,1 @@
-export const enabledModules = ['multiAP'];
+export const enabledModules = ['multiAP', 'deadZoneReport'];
