@@ -1,3 +1,3 @@
 module.exports = {
-  enabledModules: ['multiAP', 'deadZoneReport'],
+  enabledModules: ['multiAP', 'deadZoneReport', 'multiFloor'],
 };
