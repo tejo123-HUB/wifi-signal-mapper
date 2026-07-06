@@ -1,22 +1,10 @@
 const { interpolateGrid } = require('../../core/interpolation');
 const { sendError } = require('../../core/apiError');
-
-function columnExists(db, table, column) {
-  return new Promise((resolve, reject) => {
-    db.all(`PRAGMA table_info(${table})`, [], (err, cols) => {
-      if (err) return reject(err);
-      resolve(cols.some((c) => c.name === column));
-    });
-  });
-}
+const { addColumnIfMissing } = require('../../core/schema');
 
 async function migrate(db) {
-  if (!(await columnExists(db, 'samples', 'ssid'))) {
-    db.run('ALTER TABLE samples ADD COLUMN ssid TEXT');
-  }
-  if (!(await columnExists(db, 'samples', 'bssid'))) {
-    db.run('ALTER TABLE samples ADD COLUMN bssid TEXT');
-  }
+  await addColumnIfMissing(db, 'samples', 'ssid', 'TEXT');
+  await addColumnIfMissing(db, 'samples', 'bssid', 'TEXT');
 }
 
 function register(app, db) {

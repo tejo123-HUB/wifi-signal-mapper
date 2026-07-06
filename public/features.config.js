@@ -1,1 +1,7 @@
-export const enabledModules = ['multiAP', 'deadZoneReport', 'multiFloor', 'congestionTracking'];
+export const enabledModules = [
+  'multiAP',
+  'deadZoneReport',
+  'multiFloor',
+  'congestionTracking',
+  'speedTest',
+];
